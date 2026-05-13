@@ -1,9 +1,10 @@
 import { AppShell } from "@/components/AppShell";
+import { KanbanBoard } from "@/components/KanbanBoard";
 
 export default function Home() {
   return (
     <AppShell>
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+      <section className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
         <div className="max-w-3xl">
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             1 ボード固定のカンバン型 ToDo アプリ
@@ -18,6 +19,7 @@ export default function Home() {
           </p>
         </div>
       </section>
+      <KanbanBoard />
     </AppShell>
   );
 }
