@@ -5,11 +5,50 @@ type KanbanColumnProps = {
   title: string;
   status: TaskStatus;
   tasks: Task[];
+  draggingTaskId: string | null;
+  isDropTarget: boolean;
+  onUpdateTask: (
+    taskId: string,
+    input: Pick<Task, "title" | "description">,
+  ) => void;
+  onDeleteTask: (taskId: string) => void;
+  onDragStartTask: (taskId: string) => void;
+  onDragEnterColumn: (status: TaskStatus) => void;
+  onDragEndTask: () => void;
+  onDropTask: (status: TaskStatus) => void;
 };
 
-export function KanbanColumn({ title, tasks }: KanbanColumnProps) {
+export function KanbanColumn({
+  title,
+  status,
+  tasks,
+  draggingTaskId,
+  isDropTarget,
+  onUpdateTask,
+  onDeleteTask,
+  onDragStartTask,
+  onDragEnterColumn,
+  onDragEndTask,
+  onDropTask,
+}: KanbanColumnProps) {
   return (
-    <section className="flex min-h-80 flex-col rounded-xl border border-slate-200 bg-slate-100/70 p-3 dark:border-slate-800 dark:bg-slate-900/70">
+    <section
+      aria-label={`${title} column`}
+      className={`flex min-h-80 flex-col rounded-xl border p-3 transition ${
+        isDropTarget
+          ? "border-slate-500 bg-slate-200/80 ring-2 ring-slate-300 dark:border-slate-400 dark:bg-slate-800/80 dark:ring-slate-700"
+          : "border-slate-200 bg-slate-100/70 dark:border-slate-800 dark:bg-slate-900/70"
+      }`}
+      onDragEnter={() => onDragEnterColumn(status)}
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        onDropTask(status);
+      }}
+    >
       <div className="mb-3 flex items-center justify-between gap-3 px-1">
         <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
           {title}
@@ -20,7 +59,17 @@ export function KanbanColumn({ title, tasks }: KanbanColumnProps) {
       </div>
       <div className="flex flex-1 flex-col gap-3">
         {tasks.length > 0 ? (
-          tasks.map((task) => <TaskCard key={task.id} task={task} />)
+          tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              isDragging={draggingTaskId === task.id}
+              onUpdate={onUpdateTask}
+              onDelete={onDeleteTask}
+              onDragStart={onDragStartTask}
+              onDragEnd={onDragEndTask}
+            />
+          ))
         ) : (
           <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white/70 p-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400">
             タスクはありません。
