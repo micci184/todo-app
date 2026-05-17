@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
-import { TaskForm } from "@/components/TaskForm";
 import { createTask } from "@/lib/task";
 import { loadAppState, saveAppState } from "@/lib/storage";
 import {
@@ -63,6 +62,16 @@ export function KanbanBoard() {
     setDropTargetStatus(null);
   };
 
+  const createNewTask = (input: { title: string; description: string }) => {
+    setTasks((currentTasks) => [
+      createTask({
+        title: input.title,
+        description: input.description,
+      }),
+      ...currentTasks,
+    ]);
+  };
+
   useEffect(() => {
     const frameId = requestAnimationFrame(() => {
       const storedState = loadAppState();
@@ -98,20 +107,8 @@ export function KanbanBoard() {
   }, [tasks]);
 
   return (
-    <div className="grid gap-6">
-      <TaskForm
-        onCreateTask={(input) => {
-          setTasks((currentTasks) => [
-            createTask({
-              title: input.title,
-              description: input.description,
-            }),
-            ...currentTasks,
-          ]);
-        }}
-      />
-
-      <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid gap-5 sm:gap-6">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-3 xl:gap-5">
         {TASK_STATUSES.map((status) => (
           <KanbanColumn
             key={status}
@@ -125,6 +122,7 @@ export function KanbanBoard() {
             onDragStartTask={setDraggingTaskId}
             onDragEnterColumn={setDropTargetStatus}
             onDragEndTask={finishDragging}
+            onCreateTask={status === "todo" ? createNewTask : undefined}
             onDropTask={(targetStatus) => {
               if (draggingTaskId) {
                 changeTaskStatus(draggingTaskId, targetStatus);
