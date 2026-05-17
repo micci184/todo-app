@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { TaskCard } from "@/components/TaskCard";
 import type { Task, TaskStatus } from "@/types/task";
 
@@ -15,6 +18,7 @@ type KanbanColumnProps = {
   onDragStartTask: (taskId: string) => void;
   onDragEnterColumn: (status: TaskStatus) => void;
   onDragEndTask: () => void;
+  onCreateTask?: (input: { title: string; description: string }) => void;
   onDropTask: (status: TaskStatus) => void;
 };
 
@@ -29,8 +33,24 @@ export function KanbanColumn({
   onDragStartTask,
   onDragEnterColumn,
   onDragEndTask,
+  onCreateTask,
   onDropTask,
 }: KanbanColumnProps) {
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const trimmedTitle = newTaskTitle.trim();
+
+  const createTaskFromTitle = () => {
+    if (!onCreateTask || !trimmedTitle) {
+      return;
+    }
+
+    onCreateTask({
+      title: trimmedTitle,
+      description: "",
+    });
+    setNewTaskTitle("");
+  };
+
   return (
     <section
       aria-label={`${title} column`}
@@ -75,6 +95,43 @@ export function KanbanColumn({
             タスクはありません。
           </div>
         )}
+        {onCreateTask ? (
+          <form
+            className="rounded-lg border border-dashed border-slate-300 bg-white/70 p-3 dark:border-slate-700 dark:bg-slate-950/50"
+            onSubmit={(event) => {
+              event.preventDefault();
+              createTaskFromTitle();
+            }}
+          >
+            <label className="sr-only" htmlFor="new-task-title">
+              新しいタスクのタイトル
+            </label>
+            <textarea
+              id="new-task-title"
+              value={newTaskTitle}
+              onChange={(event) => setNewTaskTitle(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  createTaskFromTitle();
+                }
+              }}
+              rows={2}
+              placeholder="+ カードのタイトルを入力"
+              className="w-full resize-none rounded-md border border-transparent bg-transparent px-2 py-2 text-base text-slate-950 outline-none transition placeholder:text-slate-500 focus:border-slate-300 focus:bg-white focus:ring-2 focus:ring-slate-200 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus:border-slate-700 dark:focus:bg-slate-900 dark:focus:ring-slate-800 sm:text-sm"
+            />
+            <div className="mt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={createTaskFromTitle}
+                disabled={!trimmedTitle}
+                className="inline-flex h-9 items-center justify-center rounded-md bg-slate-950 px-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+              >
+                追加
+              </button>
+            </div>
+          </form>
+        ) : null}
       </div>
     </section>
   );
