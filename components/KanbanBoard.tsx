@@ -98,7 +98,7 @@ export function KanbanBoard() {
   }, [tasks]);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5 sm:gap-6">
       <TaskForm
         onCreateTask={(input) => {
           setTasks((currentTasks) => [
@@ -111,7 +111,7 @@ export function KanbanBoard() {
         }}
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-3 xl:gap-5">
         {TASK_STATUSES.map((status) => (
           <KanbanColumn
             key={status}
