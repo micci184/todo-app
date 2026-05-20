@@ -19,7 +19,7 @@ type KanbanColumnProps = {
   onDragEnterColumn: (status: TaskStatus) => void;
   onDragEndTask: () => void;
   onCreateTask?: (input: { title: string; description: string }) => void;
-  onDropTask: (status: TaskStatus) => void;
+  onDropTask: (status: TaskStatus, targetTaskId?: string) => void;
 };
 
 export function KanbanColumn({
@@ -88,6 +88,8 @@ export function KanbanColumn({
               onDelete={onDeleteTask}
               onDragStart={onDragStartTask}
               onDragEnd={onDragEndTask}
+              onDragEnter={() => onDragEnterColumn(status)}
+              onDrop={() => onDropTask(status, task.id)}
             />
           ))
         ) : (

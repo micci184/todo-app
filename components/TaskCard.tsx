@@ -12,7 +12,9 @@ type TaskCardProps = {
   ) => void;
   onDelete: (taskId: string) => void;
   onDragStart: (taskId: string) => void;
+  onDragEnter: () => void;
   onDragEnd: () => void;
+  onDrop: () => void;
 };
 
 export function TaskCard({
@@ -21,7 +23,9 @@ export function TaskCard({
   onUpdate,
   onDelete,
   onDragStart,
+  onDragEnter,
   onDragEnd,
+  onDrop,
 }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -113,6 +117,16 @@ export function TaskCard({
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", task.id);
         onDragStart(task.id);
+      }}
+      onDragEnter={onDragEnter}
+      onDragOver={(event: DragEvent<HTMLElement>) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event: DragEvent<HTMLElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onDrop();
       }}
       onDragEnd={onDragEnd}
     >

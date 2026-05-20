@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { createTask } from "@/lib/task";
 import { loadAppState, saveAppState } from "@/lib/storage";
@@ -17,7 +17,7 @@ export function KanbanBoard() {
   const [dropTargetStatus, setDropTargetStatus] = useState<TaskStatus | null>(
     null,
   );
-  const hasLoadedStoredState = useRef(false);
+  const [hasLoadedStoredState, setHasLoadedStoredState] = useState(false);
 
   const updateTask = (
     taskId: string,
@@ -43,23 +43,49 @@ export function KanbanBoard() {
     );
   };
 
-  const changeTaskStatus = (taskId: string, status: TaskStatus) => {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === taskId && task.status !== status
-          ? {
-              ...task,
-              status,
-              updatedAt: new Date().toISOString(),
-            }
-          : task,
-      ),
-    );
-  };
-
   const finishDragging = () => {
     setDraggingTaskId(null);
     setDropTargetStatus(null);
+  };
+
+  const moveTask = (
+    taskId: string,
+    targetStatus: TaskStatus,
+    targetTaskId?: string,
+  ) => {
+    setTasks((currentTasks) => {
+      const draggedTask = currentTasks.find((task) => task.id === taskId);
+
+      if (!draggedTask || targetTaskId === taskId) {
+        return currentTasks;
+      }
+
+      const shouldUpdateStatus = draggedTask.status !== targetStatus;
+      const movedTask = shouldUpdateStatus
+        ? {
+            ...draggedTask,
+            status: targetStatus,
+            updatedAt: new Date().toISOString(),
+          }
+        : draggedTask;
+      const tasksWithoutDragged = currentTasks.filter(
+        (task) => task.id !== taskId,
+      );
+
+      if (targetTaskId && targetTaskId !== taskId) {
+        const targetTaskIndex = tasksWithoutDragged.findIndex(
+          (task) => task.id === targetTaskId,
+        );
+
+        if (targetTaskIndex >= 0) {
+          const reorderedTasks = [...tasksWithoutDragged];
+          reorderedTasks.splice(targetTaskIndex, 0, movedTask);
+          return reorderedTasks;
+        }
+      }
+
+      return [...tasksWithoutDragged, movedTask];
+    });
   };
 
   const createNewTask = (input: { title: string; description: string }) => {
@@ -75,8 +101,8 @@ export function KanbanBoard() {
   useEffect(() => {
     const frameId = requestAnimationFrame(() => {
       const storedState = loadAppState();
-      hasLoadedStoredState.current = true;
       setTasks(storedState.tasks);
+      setHasLoadedStoredState(true);
     });
 
     return () => {
@@ -85,12 +111,12 @@ export function KanbanBoard() {
   }, []);
 
   useEffect(() => {
-    if (!hasLoadedStoredState.current) {
+    if (!hasLoadedStoredState) {
       return;
     }
 
     saveAppState({ tasks });
-  }, [tasks]);
+  }, [hasLoadedStoredState, tasks]);
 
   const tasksByStatus = useMemo(() => {
     return TASK_STATUSES.reduce<Record<TaskStatus, Task[]>>(
@@ -105,6 +131,14 @@ export function KanbanBoard() {
       },
     );
   }, [tasks]);
+
+  if (!hasLoadedStoredState) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-100/70 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400">
+        タスクを読み込んでいます。
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-5 sm:gap-6">
@@ -123,9 +157,9 @@ export function KanbanBoard() {
             onDragEnterColumn={setDropTargetStatus}
             onDragEndTask={finishDragging}
             onCreateTask={status === "todo" ? createNewTask : undefined}
-            onDropTask={(targetStatus) => {
+            onDropTask={(targetStatus, targetTaskId) => {
               if (draggingTaskId) {
-                changeTaskStatus(draggingTaskId, targetStatus);
+                moveTask(draggingTaskId, targetStatus, targetTaskId);
               }
 
               finishDragging();
