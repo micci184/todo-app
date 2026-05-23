@@ -88,25 +88,30 @@ export function KanbanBoard() {
     });
   };
 
-  const createNewTask = (input: { title: string; description: string }) => {
+  const createNewTask = (input: {
+    title: string;
+    description: string;
+    status: TaskStatus;
+  }) => {
     setTasks((currentTasks) => [
       createTask({
         title: input.title,
         description: input.description,
+        status: input.status,
       }),
       ...currentTasks,
     ]);
   };
 
   useEffect(() => {
-    const frameId = requestAnimationFrame(() => {
+    const timeoutId = window.setTimeout(() => {
       const storedState = loadAppState();
       setTasks(storedState.tasks);
       setHasLoadedStoredState(true);
-    });
+    }, 0);
 
     return () => {
-      cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
     };
   }, []);
 
@@ -156,7 +161,12 @@ export function KanbanBoard() {
             onDragStartTask={setDraggingTaskId}
             onDragEnterColumn={setDropTargetStatus}
             onDragEndTask={finishDragging}
-            onCreateTask={status === "todo" ? createNewTask : undefined}
+            onCreateTask={(input) =>
+              createNewTask({
+                ...input,
+                status,
+              })
+            }
             onDropTask={(targetStatus, targetTaskId) => {
               if (draggingTaskId) {
                 moveTask(draggingTaskId, targetStatus, targetTaskId);

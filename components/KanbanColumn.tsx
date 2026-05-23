@@ -38,6 +38,7 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const trimmedTitle = newTaskTitle.trim();
+  const newTaskTitleId = `new-task-title-${status}`;
 
   const createTaskFromTitle = () => {
     if (!onCreateTask || !trimmedTitle) {
@@ -105,11 +106,11 @@ export function KanbanColumn({
               createTaskFromTitle();
             }}
           >
-            <label className="sr-only" htmlFor="new-task-title">
+            <label className="sr-only" htmlFor={newTaskTitleId}>
               新しいタスクのタイトル
             </label>
             <textarea
-              id="new-task-title"
+              id={newTaskTitleId}
               value={newTaskTitle}
               onChange={(event) => setNewTaskTitle(event.target.value)}
               onKeyDown={(event) => {
