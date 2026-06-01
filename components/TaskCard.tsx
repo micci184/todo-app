@@ -11,6 +11,7 @@ type TaskCardProps = {
     input: Pick<Task, "title" | "description">,
   ) => void;
   onDelete: (taskId: string) => void;
+  onOpen: (taskId: string) => void;
   onDragStart: (taskId: string) => void;
   onDragEnter: () => void;
   onDragEnd: () => void;
@@ -22,6 +23,7 @@ export function TaskCard({
   isDragging,
   onUpdate,
   onDelete,
+  onOpen,
   onDragStart,
   onDragEnter,
   onDragEnd,
@@ -107,12 +109,25 @@ export function TaskCard({
   return (
     <article
       draggable
+      role="button"
+      tabIndex={0}
       aria-label={`${task.title} のタスクカード`}
       className={`group min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition dark:border-slate-800 dark:bg-slate-950 ${
         isDragging
           ? "cursor-grabbing opacity-50 ring-2 ring-slate-300 dark:ring-slate-700"
           : "cursor-grab hover:-translate-y-0.5 hover:shadow-md"
       }`}
+      onClick={() => onOpen(task.id)}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) {
+          return;
+        }
+
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen(task.id);
+        }
+      }}
       onDragStart={(event: DragEvent<HTMLElement>) => {
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", task.id);
@@ -157,14 +172,20 @@ export function TaskCard({
             <div className="mt-3 flex flex-wrap justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setIsConfirmingDelete(false)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsConfirmingDelete(false);
+                }}
                 className="inline-flex h-9 flex-1 items-center justify-center rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-700 transition hover:bg-red-50 dark:border-red-900/70 dark:bg-slate-950 dark:text-red-300 dark:hover:bg-red-950/50 sm:h-8 sm:flex-none"
               >
                 キャンセル
               </button>
               <button
                 type="button"
-                onClick={() => onDelete(task.id)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(task.id);
+                }}
                 className="inline-flex h-9 flex-1 items-center justify-center rounded-md bg-red-700 px-3 text-xs font-semibold text-white transition hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-red-500 dark:text-white dark:hover:bg-red-400 sm:h-8 sm:flex-none"
               >
                 削除する
@@ -175,7 +196,8 @@ export function TaskCard({
           <div className="flex flex-wrap items-center justify-end gap-2 opacity-100 transition sm:opacity-80 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
             <button
               type="button"
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation();
                 setIsConfirmingDelete(false);
                 resetForm();
                 setIsEditing(true);
@@ -186,7 +208,10 @@ export function TaskCard({
             </button>
             <button
               type="button"
-              onClick={() => setIsConfirmingDelete(true)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsConfirmingDelete(true);
+              }}
               className="inline-flex h-9 items-center justify-center rounded-md px-3 text-xs font-medium text-red-600 transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300 sm:h-8 sm:px-2.5"
               aria-label={`${task.title} を削除`}
             >
