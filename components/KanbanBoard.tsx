@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { CardDetailModal } from "@/components/CardDetailModal";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { createTask } from "@/lib/task";
 import { loadAppState, saveAppState } from "@/lib/storage";
@@ -17,6 +18,7 @@ export function KanbanBoard() {
   const [dropTargetStatus, setDropTargetStatus] = useState<TaskStatus | null>(
     null,
   );
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [hasLoadedStoredState, setHasLoadedStoredState] = useState(false);
 
   const updateTask = (
@@ -137,6 +139,10 @@ export function KanbanBoard() {
     );
   }, [tasks]);
 
+  const selectedTask = selectedTaskId
+    ? tasks.find((task) => task.id === selectedTaskId)
+    : undefined;
+
   if (!hasLoadedStoredState) {
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-100/70 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400">
@@ -158,6 +164,7 @@ export function KanbanBoard() {
             isDropTarget={dropTargetStatus === status}
             onUpdateTask={updateTask}
             onDeleteTask={deleteTask}
+            onOpenTask={setSelectedTaskId}
             onDragStartTask={setDraggingTaskId}
             onDragEnterColumn={setDropTargetStatus}
             onDragEndTask={finishDragging}
@@ -177,6 +184,14 @@ export function KanbanBoard() {
           />
         ))}
       </div>
+      {selectedTask ? (
+        <CardDetailModal
+          key={selectedTask.id}
+          task={selectedTask}
+          onClose={() => setSelectedTaskId(null)}
+          onUpdateTask={updateTask}
+        />
+      ) : null}
     </div>
   );
 }
